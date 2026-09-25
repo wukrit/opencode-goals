@@ -75,14 +75,12 @@ budget caps safe by default; and an unattended permission sandbox.
 ```
 
 Shorthand also works: `"plugins": ["opencode2-goals"]`. Pin a version
-(`"opencode2-goals@1.0.1"`) if you want stability across updates. Note the
+(`"opencode2-goals@1.0.2"`) if you want stability across updates. Note the
 `2`: the legacy npm name `opencode-goals` belongs to an unrelated package.
 
-> **TUI users:** until [issue #3](https://github.com/wukrit/opencode2-goals/issues/3)
-> is fixed, an npm-sourced install makes the terminal attempt (and fail) to
-> auto-load the sidebar widget — harmless to the goal loop, but it shows a
-> plugin-load warning. Server-only installs are unaffected; use the
-> from-source install below if you want the widget without the notice.
+> **Tip:** pin a version (`"opencode2-goals@1.0.2"`) — the host's `@latest`
+> resolution caches aggressively and may serve an older version after a
+> publish. `npm view opencode2-goals version` shows the current release.
 
 ### From source (local directory)
 
@@ -160,12 +158,12 @@ widget automatically alongside the server plugin.
 { "plugins": [{ "package": "/path/to/opencode2-goals" }] }
 ```
 
-With an **npm install, the goal loop is fully functional but the widget
-cannot load** (the host does not resolve `@opentui/*`/`solid-js` for
-npm-cached plugin entries — see issue #3), and the terminal shows a
-plugin-load warning for it. Adding a separate `cli.json` directory entry on
-top of an npm server entry is not recommended: the npm location's `./tui` is
-still attempted, producing the same warning plus a duplicate widget.
+The npm install renders the widget too: since v1.0.2 the `./tui` entry ships
+pre-compiled (`dist/tui.js`), because the host's Solid/JSX transform skips
+`.tsx` under `node_modules` — see [issue #3](https://github.com/wukrit/opencode2-goals/issues/3)
+for the full root-cause writeup. No `cli.json` entry is required for either
+install shape; adding one on top of a working location just duplicates the
+widget.
 
 ## Safe configuration
 
