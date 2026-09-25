@@ -12,45 +12,57 @@ progress widget in the sidebar.
 
 ## What it does
 
-- `/goal set <objective> [--turns N] [--tokens N] [--unbounded]` starts and
-  drives the loop. **Without flags a default cap of 10 turns / 100,000 tokens
-  applies.** Pass explicit caps to override, or `--unbounded` (also
-  `--no-cap`, `--unlimited`) to opt out of numeric limits entirely.
-- `/goal view | pause | resume | clear | complete <evidence> | block <reason> | history`
-  manages it. (`history` also answers to `log`.)
-- `goal_set(objective, turns?, tokens?, unbounded?)` — model-callable set for
-  the same loop. Refuses while a non-terminal goal is active (no clobbering
-  the user's goal), honors the same cap defaults, and injects the first
-  continuation like `/goal set` does.
-- `goal_complete(evidence)` — model-callable. Evidence must be concrete,
-  independently checkable, and grounded in the session's observed work
-  (path / number / file / test-result anchor, ≥24 chars, and — when transcript
-  is available — at least one substantive token overlapping recent messages).
-  Weak claims are rejected and the goal stays `active`.
-- `goal_block(reason)` — model-callable; reports a genuine blocker.
-- `goal_clear(request)` — model-callable **only on explicit user instruction**.
-  `request` must quote the user's own message, and the quote is grounded
-  against non-assistant transcript text (assistant prose cannot unlock it;
-  no transcript fails closed). The model's sanctioned exits remain
-  `goal_complete` and `goal_block`.
-- **Durable history**: every terminal goal (and any active goal superseded by
-  a new `set`) is archived under `goal/<session>/archived/<goalID>`.
-  `/goal history` and the read-only `goal_history()` tool render them newest
-  first — outcome, turns, tokens, task counts, and evidence snippets survive
-  across goal replacements.
-- The objective is injected via `ctx.session.hook("context")` on every agent
-  model call.
-- Continuation is driven by terminal `session.execution.*` events (in this
-  build, `session.idle` is not delivered to plugin subscribers), one
-  continuation per idle boundary, scoped to the owning
-  plugin instance by project.
-- A continuation that makes no tool call stalls the goal; reaching a cap yields
-  a distinct `budget_limited` outcome that is neither completion nor blocked.
-- The permission sandbox (`permission.hook("evaluate")`) auto-allows in-scope
-  path requests for sessions with an `active` goal and auto-denies out-of-scope
-  ones with a message steering the model to `goal_block`. Configured `deny`
-  rules are never widened (the platform does not invoke the hook for them;
-  the plugin additionally guards `effect === "deny"`).
+### Commands — for you
+
+| Command | Effect |
+| --- | --- |
+| `/goal set <objective> [--turns N] [--tokens N] [--unbounded]` | Start the loop. No flags = **10-turn / 100,000-token cap**; `--unbounded` (also `--no-cap`, `--unlimited`) opts out of numeric limits. |
+| `/goal view` | Full state: status, budget usage, tasks, evidence, outcome. |
+| `/goal pause` / `/goal resume` | Halt or re-arm continuation without losing state. |
+| `/goal complete <evidence>` / `/goal block <reason>` | Terminal outcomes, same gates as the tools below. |
+| `/goal clear` | Remove the goal (archived first — see Durability). |
+| `/goal task add <title>` / `/goal task <n> doing\|done` | Drive the task breakdown from the keyboard. |
+| `/goal history` | Every terminal or superseded goal this session produced (`log` is an alias). |
+
+### Tools — for the model
+
+| Tool | Gate |
+| --- | --- |
+| `goal_set(objective, turns?, tokens?, unbounded?)` | Refuses while a non-terminal goal exists — the model can't clobber yours, and cap defaults match `/goal set`. |
+| `goal_complete(evidence)` | Evidence ≥24 chars with a checkable anchor (path, number, test result), grounded in transcript tokens when history is available. Weak claims are rejected; the goal stays `active`. |
+| `goal_block(reason)` | Requires a specific reason; the sanctioned "I can't proceed" exit. |
+| `goal_clear(request)` | Must quote the user's own clearing ask, grounded against **non-assistant** transcript text — assistant prose can't launder it, and no transcript fails closed. |
+| `goal_add_task(title)` / `goal_update_task(ref, status)` | None (active goal required); the widget stays in sync. |
+| `goal_history()` | Read-only. |
+
+### The loop
+
+- The objective is re-injected into **every** agent-loop model call via
+  `session.hook("context")`, keeping focus across long runs.
+- Turn boundaries come from terminal `session.execution.*` events —
+  `session.idle` is not delivered to plugins in this build. Exactly one
+  continuation is injected per boundary, deduped by event id and scoped to
+  the session's owning project.
+- A continuation that makes no tool call counts as a **stall**; reaching a
+  cap produces the distinct `budget_limited` outcome — neither completion
+  nor blocked.
+
+### Durability
+
+- Goal state is stored per session (`goal/<sessionID>`) and survives reloads
+  and restarts.
+- Terminal goals — and any active goal superseded by a new `set` — are
+  archived under `goal/<sessionID>/archived/<goalID>`, so outcomes, budgets
+  consumed, and evidence survive across goal replacements.
+
+### Safety
+
+- Caps by default; `--unbounded` is always an explicit opt-in.
+- **Permission sandbox:** while a goal is `active`, in-scope path requests
+  are auto-allowed and out-of-scope ones auto-denied with a message steering
+  the model to `goal_block`. Configured `deny` rules are never widened.
+- Evidence gating is a **heuristic**, not semantic verification — see
+  `src/evidence.ts` and *Safe configuration*.
 
 ## Status outcomes
 
