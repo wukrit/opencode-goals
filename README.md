@@ -153,19 +153,14 @@ Load both entries: the server plugin as usual, plus the CLI plugin:
 ```
 
 ```jsonc
-// cli.json (TUI)
-{ "plugins": ["opencode2-goals"] }
+// cli.json (TUI) — from a local clone until #3 is fixed
+{ "plugins": [{ "package": "/path/to/opencode2-goals" }] }
 ```
 
-Use the `opencode2-goals` name exactly — the legacy bare name
-`opencode-goals` resolves on npm to an unrelated package and fails to load
-(`jsxDEV` export error; observed on 2.0.16). Directory installs resolve to the
-repo's top-level `tui.tsx` (same layout as
-`<global-config>/plugins/<name>/tui.ts` discovery), so this repo keeps a
-top-level `tui.tsx` shim re-exporting `src/tui.tsx` (still exposed as `./tui`
-for the publish shape). Server plugins exposing `./tui` did not auto-load in
-the observed TUI (12 builtin plugins only); the explicit `cli.json` entry
-loads `goals-tui` cleanly (`plugins=13`).
+The TUI widget does not yet load from the npm tarball (the host's JSX/peer
+import map isn't applied to cached npm entries — see issue #3), so the
+`cli.json` entry should point at a local checkout for now. The server plugin —
+the entire goal loop — installs from npm with no clone.
 
 ## Safe configuration
 
