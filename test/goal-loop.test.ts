@@ -559,4 +559,38 @@ describe("goal loop (driven through real setup())", () => {
     expect(tool.content).toContain(aID)
     expect(tool.content).toContain(bID)
   })
+
+  test("complete/block guards report goal state before demanding evidence", async () => {
+    const ctx = new MockContext()
+    await ctx.start()
+    await ctx.runGoal(SID, "set finish A")
+    ctx.setMessages(SID, [
+      userMessage("m0"),
+      { id: "a1", type: "assistant", content: [{ type: "text", text: "created phase1.txt, verified output" }] },
+    ])
+    const ok = await ctx.callTool(SID, "goal_complete", { evidence: "created phase1.txt and verified output in build" })
+    expect(ok.content).toContain("completed")
+
+    // Bare `/goal complete` on a terminal goal hits the state guard, not the evidence guard.
+    await ctx.runGoal(SID, "complete")
+    const notice = ctx.notices[ctx.notices.length - 1]?.text ?? ""
+    expect(notice).toContain("completed, not active")
+    expect(notice).not.toContain("evidence is required")
+
+    // Same precedence through the tool surface.
+    const late = await ctx.callTool(SID, "goal_complete", { evidence: "   " })
+    expect(late.content).toContain("not active")
+    const lateBlock = await ctx.callTool(SID, "goal_block", { reason: "" })
+    expect(lateBlock.content).toContain("not active")
+
+    // Cleared goals get the state wording too (record exists, status cleared).
+    await ctx.runGoal(SID, "clear")
+    const none = await ctx.callTool(SID, "goal_complete", { evidence: "" })
+    expect(none.content).toContain("cleared, not active")
+
+    // And a bare command on an ACTIVE goal still gets the helpful evidence prompt.
+    await ctx.runGoal(SID, "set finish B")
+    await ctx.runGoal(SID, "complete")
+    expect(ctx.notices[ctx.notices.length - 1]?.text).toContain("evidence is required")
+  })
 })

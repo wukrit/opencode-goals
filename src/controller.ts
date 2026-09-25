@@ -366,13 +366,17 @@ export class GoalController {
         return
       }
       case "complete": {
-        const evidence = command.evidence.trim()
-        if (!evidence) {
-          await this.notify(sessionID, "Completion rejected: evidence is required.")
+        if (!goal) {
+          await this.notify(sessionID, "No goal to complete.")
           return
         }
-        if (!goal || goal.status !== "active") {
-          await this.notify(sessionID, "No active goal to complete.")
+        if (goal.status !== "active") {
+          await this.notify(sessionID, `Completion rejected: goal ${goal.id} is ${goal.status}, not active. /goal resume to continue it, or /goal set a new one.`)
+          return
+        }
+        const evidence = command.evidence.trim()
+        if (!evidence) {
+          await this.notify(sessionID, "Completion rejected: evidence is required, e.g. `/goal complete tests: 42/42 pass in build/log.txt`.")
           return
         }
         const transcript = await this.transcriptForEvidence(sessionID)
@@ -389,13 +393,17 @@ export class GoalController {
         return
       }
       case "block": {
-        const reason = command.reason.trim()
-        if (!reason) {
-          await this.notify(sessionID, "Block rejected: a specific reason is required.")
+        if (!goal) {
+          await this.notify(sessionID, "No goal to block.")
           return
         }
-        if (!goal || goal.status !== "active") {
-          await this.notify(sessionID, "No active goal to block.")
+        if (goal.status !== "active") {
+          await this.notify(sessionID, `Block rejected: goal ${goal.id} is ${goal.status}, not active.`)
+          return
+        }
+        const reason = command.reason.trim()
+        if (!reason) {
+          await this.notify(sessionID, "Block rejected: a specific reason is required, e.g. `/goal block Waiting on staging credentials`.")
           return
         }
         goal.status = "blocked"
@@ -445,16 +453,19 @@ export class GoalController {
   // ---- model-callable tools --------------------------------------------
 
   async onGoalComplete(input: Record<string, unknown>, context: ToolContext): Promise<{ content: string }> {
+    const goal = await this.load(context.sessionID)
+    if (!goal) {
+      return { content: "No goal to complete." }
+    }
+    if (goal.status !== "active") {
+      return { content: `Goal NOT completed: ${goal.id} is ${goal.status}, not active. Nothing to finish — resume it or set a new goal.` }
+    }
     const evidence = String(input?.evidence ?? "").trim()
     if (!evidence) {
       return {
         content:
           "Goal NOT completed: `evidence` is required and must describe something checkable. The goal remains active.",
       }
-    }
-    const goal = await this.load(context.sessionID)
-    if (!goal || goal.status !== "active") {
-      return { content: "No active goal to complete." }
     }
     const transcript = await this.transcriptForEvidence(context.sessionID)
     const rejection = validateEvidence(evidence, transcript)
@@ -485,13 +496,16 @@ export class GoalController {
   }
 
   async onGoalBlock(input: Record<string, unknown>, context: ToolContext): Promise<{ content: string }> {
+    const goal = await this.load(context.sessionID)
+    if (!goal) {
+      return { content: "No goal to block." }
+    }
+    if (goal.status !== "active") {
+      return { content: `Goal NOT blocked: ${goal.id} is ${goal.status}, not active.` }
+    }
     const reason = String(input?.reason ?? "").trim()
     if (!reason) {
       return { content: "Goal NOT blocked: a specific `reason` is required. The goal remains active." }
-    }
-    const goal = await this.load(context.sessionID)
-    if (!goal || goal.status !== "active") {
-      return { content: "No active goal to block." }
     }
     goal.status = "blocked"
     goal.outcome = "blocked"
