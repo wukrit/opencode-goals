@@ -75,8 +75,14 @@ budget caps safe by default; and an unattended permission sandbox.
 ```
 
 Shorthand also works: `"plugins": ["opencode2-goals"]`. Pin a version
-(`"opencode2-goals@1.0.0"`) if you want stability across updates. Note the
+(`"opencode2-goals@1.0.1"`) if you want stability across updates. Note the
 `2`: the legacy npm name `opencode-goals` belongs to an unrelated package.
+
+> **TUI users:** until [issue #3](https://github.com/wukrit/opencode2-goals/issues/3)
+> is fixed, an npm-sourced install makes the terminal attempt (and fail) to
+> auto-load the sidebar widget — harmless to the goal loop, but it shows a
+> plugin-load warning. Server-only installs are unaffected; use the
+> from-source install below if you want the widget without the notice.
 
 ### From source (local directory)
 
@@ -145,22 +151,21 @@ task-progress bar; and the task list — updating via the RPC event, no
 polling. Colored accents collapse to base text on light themes so the widget
 stays legible in both modes.
 
-Load both entries: the server plugin as usual, plus the CLI plugin:
+With a **from-source (directory) install, no extra configuration is needed** —
+the TUI discovers the `./tui` entry from the same location and renders the
+widget automatically alongside the server plugin.
 
 ```jsonc
-// opencode.jsonc (server)
-{ "plugins": ["opencode2-goals"] }
-```
-
-```jsonc
-// cli.json (TUI) — from a local clone until #3 is fixed
+// opencode.jsonc — everything works from one directory entry
 { "plugins": [{ "package": "/path/to/opencode2-goals" }] }
 ```
 
-The TUI widget does not yet load from the npm tarball (the host's JSX/peer
-import map isn't applied to cached npm entries — see issue #3), so the
-`cli.json` entry should point at a local checkout for now. The server plugin —
-the entire goal loop — installs from npm with no clone.
+With an **npm install, the goal loop is fully functional but the widget
+cannot load** (the host does not resolve `@opentui/*`/`solid-js` for
+npm-cached plugin entries — see issue #3), and the terminal shows a
+plugin-load warning for it. Adding a separate `cli.json` directory entry on
+top of an npm server entry is not recommended: the npm location's `./tui` is
+still attempted, producing the same warning plus a duplicate widget.
 
 ## Safe configuration
 
