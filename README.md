@@ -7,7 +7,8 @@ An [OpenCode](https://opencode.ai/v2/docs/) **v2** plugin that implements a
 Codex-style goal loop: durable, session-scoped goal state; a `/goal` command
 surface; the objective injected into every model call; event-driven
 continuation on idle; an evidence-gated completion tool; stall suppression;
-budget caps safe by default; and an unattended permission sandbox.
+budget caps safe by default; an unattended permission sandbox; and a live TUI
+progress widget in the sidebar.
 
 ## What it does
 
@@ -58,8 +59,8 @@ budget caps safe by default; and an unattended permission sandbox.
 ## Requirements
 
 - OpenCode v2 (`@opencode/plugin` 2.x). Built and live-verified against
-  **2.0.15** (a service restart during verification moved the host to 2.0.16).
-- Bun, for tests and typecheck.
+  **2.0.15/2.0.16** (npm install, directory install, and the TUI widget).
+- Bun, for tests, typecheck, and building the widget entry.
 
 ## Install
 
@@ -74,13 +75,12 @@ budget caps safe by default; and an unattended permission sandbox.
 }
 ```
 
-Shorthand also works: `"plugins": ["opencode2-goals"]`. Pin a version
-(`"opencode2-goals@1.0.2"`) if you want stability across updates. Note the
-`2`: the legacy npm name `opencode-goals` belongs to an unrelated package.
-
-> **Tip:** pin a version (`"opencode2-goals@1.0.2"`) — the host's `@latest`
-> resolution caches aggressively and may serve an older version after a
-> publish. `npm view opencode2-goals version` shows the current release.
+Shorthand works too (`"plugins": ["opencode2-goals"]`), but **prefer pinning**:
+`"opencode2-goals@1.0.2"`. The host's `@latest` resolution caches aggressively
+and may keep serving an older version for a while after a publish, so a pin
+also gives you a knowingly-upgradeable install. (`npm view opencode2-goals
+version` shows the current release. And note the `2`: the legacy npm name
+`opencode-goals` belongs to an unrelated package.)
 
 ### From source (local directory)
 
@@ -112,8 +112,7 @@ opencode api post /api/location/reload
 ```
 
 A local (directory) install cannot resolve `@opencode/plugin`, so the runtime
-entry imports only local modules and declares the context shape structurally —
-the same convention as `opencode-litellm-models`.
+entry imports only local modules and declares the context shape structurally.
 
 ## Usage
 
@@ -142,8 +141,9 @@ genuinely needs no numeric limit, pass `--unbounded` explicitly.
 ## Live progress widget (sidebar)
 
 The server exposes `goals.get({ sessionID })` and emits `goals.updated` on
-every write (see `src/rpc.ts`). The TUI entry (`src/tui.tsx`, `./tui` export)
-renders a live sidebar block in three sections — objective; a counter grid
+every write (see `src/rpc.ts`). The TUI entry (source `src/tui.tsx`, shipped
+as the pre-compiled `./tui` export) renders a live sidebar block in three
+sections — objective; a counter grid
 (`Status:`, `Turns:`, `Tokens:`, `Tasks:` sharing one label column) with a
 task-progress bar; and the task list — updating via the RPC event, no
 polling. Colored accents collapse to base text on light themes so the widget
@@ -182,27 +182,46 @@ widget.
 bun install
 bun run typecheck
 bun test
+bun run build:tui   # compiles the widget to dist/tui.js (also runs via prepack on publish)
 ```
+
+If you change `src/tui.tsx`, run `bun run build:tui` before testing the
+**npm** install shape — `exports["./tui"]` serves `dist/tui.js` (see issue #3
+for why); directory installs compile the source directly.
 
 ## Layout
 
 ```
 index.ts            # loader entry: { id, setup } + goals RPC
-tui.tsx             # top-level TUI shim (re-exports src/tui.tsx for cli.json dir resolution)
+tui.tsx             # top-level TUI shim (re-exports src/tui.tsx for directory-install discovery)
 src/
   controller.ts     # the goal loop (commands, tools, hooks, events, permission sandbox, goal archive)
   state.ts          # durable goal record + tasks + pure transitions + archive keys
   command.ts        # /goal parsing (caps, --unbounded, tasks, history) + status formatting
   rpc.ts            # goals.get / goals.updated for the widget (import-free)
-  tui.tsx           # sidebar progress widget (./tui export)
+  tui.tsx           # sidebar progress widget source (pre-compiled to dist/tui.js, the ./tui export)
   evidence.ts       # completion-evidence gate + user-request gate for goal_clear
   permission.ts     # path sandbox (decidePermission, fail-closed containment)
   options.ts        # plugin options (stallLimit, defaultCapTurns/Tokens)
   types.ts          # structural slice of the plugin context
+dist/
+  tui.js            # built widget (gitignored; produced by scripts/build-tui.ts)
+scripts/
+  build-tui.ts      # compiles src/tui.tsx with the host's own @opentui/solid bun-plugin
+  logcheck.py       # timestamp-accurate plugin-load verification against the opencode log
 test/
   harness.ts        # mocked context + deterministic event bus (+ permission hook)
   goal-loop.test.ts # integration tests through the real setup()
 ```
+
+## Changelog
+
+- **1.0.2** — widget ships pre-compiled (`dist/tui.js`), so npm installs load
+  it too; fixes issue #3 (host JSX transform skips `node_modules`).
+- **1.0.1** — host TUI peers marked optional; npm installs no longer fail
+  dependency resolution (`ERESOLVE`).
+- **1.0.0** — first public release: full goal loop, tool gates, caps, durable
+  history, permission sandbox, sidebar widget.
 
 ## License
 
