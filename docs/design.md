@@ -1,6 +1,6 @@
 # Design: Codex-style Goals as an OpenCode V2 plugin
 
-**Status:** production-ready · **Target:** OpenCode **2.0.16** (live-verified; earlier work on 2.0.15, the host moved during verification) · **Artifact:** production plugin in this repo (`opencode-goals@1.0.0`)
+**Status:** production-ready · **Target:** OpenCode **2.0.16** (live-verified; earlier work on 2.0.15, the host moved during verification) · **Artifact:** production plugin in this repo (`opencode2-goals@1.0.0`)
 
 > **Note on evidence references:** throughout this doc, `[OBSERVED]` claims cite
 > experiment IDs (L1–L21) and raw event captures (`raw/…`) from the author's
@@ -152,7 +152,7 @@ live turns; `/goal view` read back objective, status, counters, cap, and
 evidence after the fact.
 
 **[OBSERVED — hazard]** `setup()` runs **once per loaded location** (three
-lines, one pid, three directories in `/tmp/opencode-goals-setup.log`), and all
+lines, one pid, three directories in `/tmp/opencode2-goals-setup.log`), and all
 instances share storage and the global event stream. Without scoping, all three
 processed the same session and enqueued three continuations for one boundary
 (`goalTurn:2 ×3`). **Fix:** resolve the session's `projectID` via
@@ -305,7 +305,7 @@ Item 7 is closed by the sandbox above.
 ## 7. Reproduce
 
 ```sh
-cd /path/to/opencode-goals
+cd /path/to/opencode2-goals
 bun install
 bun run typecheck
 bun test
@@ -315,12 +315,12 @@ Live (permanent local install):
 
 ```jsonc
 // ~/.config/opencode/opencode.jsonc  (plugins array)
-{ "package": "/path/to/opencode-goals", "options": {} }
+{ "package": "/path/to/opencode2-goals", "options": {} }
 ```
 
 ```jsonc
 // ~/.config/opencode/cli.json (TUI widget, verified live)
-{ "plugins": [{ "package": "/path/to/opencode-goals" }] }
+{ "plugins": [{ "package": "/path/to/opencode2-goals" }] }
 ```
 
 ```sh
@@ -329,9 +329,10 @@ opencode api post /api/location/reload
 # status: /goal view
 ```
 
-The bare `cli.json` form `{ "plugins": ["opencode-goals"] }` does not resolve
-to this repo: on 2.0.16 it fetches an unrelated npm package and fails
-(`jsxDEV` export error; `raw/l20-cli-bare-failure.log`). A local directory
+The bare `cli.json` form `{ "plugins": ["opencode2-goals"] }` does not resolve
+to this repo (nothing is published to npm; and the legacy bare name
+`opencode-goals` fetched an unrelated package and failed — `jsxDEV` export
+error, `raw/l20-cli-bare-failure.log`). A local directory
 entry requires a top-level `tui.tsx` (this repo keeps one as a shim over
 `src/tui.tsx`); without it the entry is silently ignored (12 plugins, no
 `goals-tui`), with it the TUI reads and sets up `goals-tui` (`plugins=13`;

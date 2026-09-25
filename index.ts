@@ -1,5 +1,5 @@
 /**
- * opencode-goals — durable, session-scoped goal loop for OpenCode v2.
+ * opencode2-goals — durable, session-scoped goal loop for OpenCode v2.
  *
  *  - `/goal set|view|pause|resume|clear|complete|block|history` command surface
  *    (default 10-turn / 100k-token cap unless `--unbounded` is given;
@@ -39,7 +39,7 @@ export default {
       try {
         const fs = await import("node:fs")
         fs.appendFileSync(
-          "/tmp/opencode-goals-setup.log",
+          "/tmp/opencode2-goals-setup.log",
           `${new Date().toISOString()} dir=${ctx.location?.directory ?? "?"} pid=${process.pid}\n`,
         )
       } catch {

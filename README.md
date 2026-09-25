@@ -1,4 +1,7 @@
-# opencode-goals
+# opencode2-goals
+
+![CI](https://github.com/wukrit/opencode2-goals/actions/workflows/ci.yml/badge.svg)
+![license](https://img.shields.io/badge/license-MIT-blue)
 
 An [OpenCode](https://opencode.ai/v2/docs/) **v2** plugin that implements a
 Codex-style goal loop: durable, session-scoped goal state; a `/goal` command
@@ -61,13 +64,18 @@ Design and trade-offs: [`docs/design.md`](docs/design.md).
 
 ## Install (local, permanent)
 
-This repo is shaped for a local directory install. Nothing is published to npm.
+This repo is shaped for a local directory install. Nothing is published to npm
+(and the legacy name `opencode-goals` on npm is an unrelated package).
+
+```sh
+git clone https://github.com/wukrit/opencode2-goals.git ~/Projects/opencode2-goals
+```
 
 ```jsonc
 // ~/.config/opencode/opencode.jsonc
 {
   "plugins": [
-    { "package": "/path/to/opencode-goals", "options": {} }
+    { "package": "/path/to/opencode2-goals", "options": {} }
   ]
 }
 ```
@@ -76,7 +84,7 @@ With options (all optional):
 
 ```jsonc
 {
-  "package": "/path/to/opencode-goals",
+  "package": "/path/to/opencode2-goals",
   "options": {
     "stallLimit": 1,
     "defaultCapTurns": 10,
@@ -133,17 +141,18 @@ Load both entries: the server plugin as usual, plus the CLI plugin:
 
 ```jsonc
 // opencode.jsonc (server)
-{ "plugins": [{ "package": "/path/to/opencode-goals" }] }
+{ "plugins": [{ "package": "/path/to/opencode2-goals" }] }
 ```
 
 ```jsonc
 // cli.json (TUI) — local directory form, verified on 2.0.16
-{ "plugins": [{ "package": "/path/to/opencode-goals" }] }
+{ "plugins": [{ "package": "/path/to/opencode2-goals" }] }
 ```
 
-Do not use `{ "plugins": ["opencode-goals"] }`: that bare name resolves via
-npm to an unrelated published package and fails to load (`jsxDEV` export
-error; observed on 2.0.16). The CLI resolves a
+Do not use `{ "plugins": ["opencode2-goals"] }`: this package is not
+published to npm, so the bare name cannot resolve. (The legacy name
+`opencode-goals` on npm belongs to an unrelated package and fails to load —
+`jsxDEV` export error; observed on 2.0.16.) The CLI resolves a
 local directory to its top-level `tui.tsx` (same layout as
 `<global-config>/plugins/<name>/tui.ts` discovery), so this repo keeps a
 top-level `tui.tsx` shim re-exporting `src/tui.tsx` (still exposed as `./tui`
@@ -194,4 +203,4 @@ docs/
 
 ## License
 
-MIT — see [LICENSE](LICENSE). Copyright (c) 2026 Middesk, Inc.
+MIT — see [LICENSE](LICENSE). Copyright (c) 2026 Sukrit Walia

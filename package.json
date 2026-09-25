@@ -1,7 +1,15 @@
 {
-  "name": "opencode-goals",
+  "name": "opencode2-goals",
   "version": "1.0.0",
   "description": "OpenCode v2 plugin: a durable, session-scoped goal loop with evidence-gated completion, budget caps, and an unattended permission sandbox",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wukrit/opencode2-goals.git"
+  },
+  "homepage": "https://github.com/wukrit/opencode2-goals#readme",
+  "bugs": {
+    "url": "https://github.com/wukrit/opencode2-goals/issues"
+  },
   "type": "module",
   "license": "MIT",
   "private": true,
