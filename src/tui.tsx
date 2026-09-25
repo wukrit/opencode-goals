@@ -1,3 +1,4 @@
+/* @jsxImportSource @opentui/solid */
 import { Plugin, usePlugin } from "@opencode/plugin/tui"
 import { createEffect, createSignal, For, onCleanup, Show } from "solid-js"
 import { goalsRpc, type GoalSnapshot } from "./rpc"
