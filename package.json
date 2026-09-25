@@ -1,6 +1,6 @@
 {
   "name": "opencode2-goals",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "OpenCode v2 plugin: a durable, session-scoped goal loop with evidence-gated completion, budget caps, and an unattended permission sandbox",
   "repository": {
     "type": "git",
@@ -46,6 +46,11 @@
   "peerDependencies": {
     "@opentui/core": "^0.5.12",
     "@opentui/solid": "^0.5.12",
-    "solid-js": "^1.9.15"
+    "solid-js": "^1.9.12"
+  },
+  "peerDependenciesMeta": {
+    "@opentui/core": { "optional": true },
+    "@opentui/solid": { "optional": true },
+    "solid-js": { "optional": true }
   }
 }
