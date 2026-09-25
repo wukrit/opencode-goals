@@ -12,7 +12,6 @@
   },
   "type": "module",
   "license": "Unlicense",
-  "private": true,
   "exports": {
     ".": "./index.ts",
     "./rpc": "./src/rpc.ts",

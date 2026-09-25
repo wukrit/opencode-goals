@@ -61,29 +61,38 @@ budget caps safe by default; and an unattended permission sandbox.
   **2.0.15** (a service restart during verification moved the host to 2.0.16).
 - Bun, for tests and typecheck.
 
-## Install (local, permanent)
+## Install
 
-This repo is shaped for a local directory install. Nothing is published to npm
-(and the legacy name `opencode-goals` on npm is an unrelated package).
+### From npm
+
+```jsonc
+// ~/.config/opencode/opencode.jsonc
+{
+  "plugins": [
+    { "package": "opencode2-goals", "options": {} }
+  ]
+}
+```
+
+Shorthand also works: `"plugins": ["opencode2-goals"]`. Pin a version
+(`"opencode2-goals@1.0.0"`) if you want stability across updates. Note the
+`2`: the legacy npm name `opencode-goals` belongs to an unrelated package.
+
+### From source (local directory)
 
 ```sh
 git clone https://github.com/wukrit/opencode2-goals.git ~/Projects/opencode2-goals
 ```
 
 ```jsonc
-// ~/.config/opencode/opencode.jsonc
-{
-  "plugins": [
-    { "package": "/path/to/opencode2-goals", "options": {} }
-  ]
-}
+{ "plugins": [{ "package": "/path/to/opencode2-goals", "options": {} }] }
 ```
 
 With options (all optional):
 
 ```jsonc
 {
-  "package": "/path/to/opencode2-goals",
+  "package": "opencode2-goals",
   "options": {
     "stallLimit": 1,
     "defaultCapTurns": 10,
@@ -140,24 +149,23 @@ Load both entries: the server plugin as usual, plus the CLI plugin:
 
 ```jsonc
 // opencode.jsonc (server)
-{ "plugins": [{ "package": "/path/to/opencode2-goals" }] }
+{ "plugins": ["opencode2-goals"] }
 ```
 
 ```jsonc
-// cli.json (TUI) — local directory form, verified on 2.0.16
-{ "plugins": [{ "package": "/path/to/opencode2-goals" }] }
+// cli.json (TUI)
+{ "plugins": ["opencode2-goals"] }
 ```
 
-Do not use `{ "plugins": ["opencode2-goals"] }`: this package is not
-published to npm, so the bare name cannot resolve. (The legacy name
-`opencode-goals` on npm belongs to an unrelated package and fails to load —
-`jsxDEV` export error; observed on 2.0.16.) The CLI resolves a
-local directory to its top-level `tui.tsx` (same layout as
+Use the `opencode2-goals` name exactly — the legacy bare name
+`opencode-goals` resolves on npm to an unrelated package and fails to load
+(`jsxDEV` export error; observed on 2.0.16). Directory installs resolve to the
+repo's top-level `tui.tsx` (same layout as
 `<global-config>/plugins/<name>/tui.ts` discovery), so this repo keeps a
 top-level `tui.tsx` shim re-exporting `src/tui.tsx` (still exposed as `./tui`
 for the publish shape). Server plugins exposing `./tui` did not auto-load in
-the observed TUI (12 builtin plugins only); the explicit `cli.json` directory
-entry loads `goals-tui` cleanly (`plugins=13`).
+the observed TUI (12 builtin plugins only); the explicit `cli.json` entry
+loads `goals-tui` cleanly (`plugins=13`).
 
 ## Safe configuration
 
