@@ -1,6 +1,6 @@
 {
   "name": "opencode2-goals",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "OpenCode v2 plugin: a durable, session-scoped goal loop with evidence-gated completion, budget caps, and an unattended permission sandbox",
   "repository": {
     "type": "git",
@@ -15,19 +15,22 @@
   "exports": {
     ".": "./index.ts",
     "./rpc": "./src/rpc.ts",
-    "./tui": "./src/tui.tsx"
+    "./tui": "./dist/tui.js"
   },
   "files": [
     "index.ts",
     "tui.tsx",
     "src",
+    "dist",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.tui.json",
     "test": "bun test",
-    "test:watch": "bun test --watch"
+    "test:watch": "bun test --watch",
+    "build:tui": "bun scripts/build-tui.ts",
+    "prepack": "bun scripts/build-tui.ts"
   },
   "keywords": [
     "opencode",
@@ -49,8 +52,14 @@
     "solid-js": "^1.9.12"
   },
   "peerDependenciesMeta": {
-    "@opentui/core": { "optional": true },
-    "@opentui/solid": { "optional": true },
-    "solid-js": { "optional": true }
+    "@opentui/core": {
+      "optional": true
+    },
+    "@opentui/solid": {
+      "optional": true
+    },
+    "solid-js": {
+      "optional": true
+    }
   }
 }
